@@ -179,7 +179,17 @@ fileprivate extension URL {
         guard var urlComponents = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
             return self
         }
-        urlComponents.queryItems = urlComponents.queryItems ?? [] + parameters.map { URLQueryItem(name: $0, value: "\($1)") }
+        
+        var items: [URLQueryItem] = []
+        for obj in parameters {
+            if let sorts = obj.value as? [String: Any], obj.key == "$sort" {
+                items.append(contentsOf: sorts.map({ URLQueryItem(name: "\(obj.key)[\($0)]", value: "\($1)") }))
+            } else {
+                let q = URLQueryItem(name: obj.key, value: "\(obj.value)")
+                items.append(q)
+            }
+        }
+        urlComponents.queryItems = items
         return urlComponents.url
     }
     
